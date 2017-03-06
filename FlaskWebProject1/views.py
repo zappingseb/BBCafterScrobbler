@@ -251,20 +251,20 @@ def home():
     index_of_episode = request.form.get('webmenu', None)
 
     indeces_of_songs = request.form.getlist('songs',None)
-
-    lastfm_token = request.headers['token']
+    try:
+        lastfm_token = request.args.get('token')
+    except KeyError:
+        lastfm_token = None
 
     print(lastfm_token)
-
-
     if lastfm_token is not None:
         doc=get_secret_dict()
-        address = "".join(["https://www.last.fm/api/auth.getSession?token=",
+        address = "".join(["http://ws.audioscrobbler.com/2.0/?method=auth.getSession?token=",
                        lastfm_token,
                        "&api_key=",
-                       doc[3],
+                       doc["api_key"],
                        "&api_sig=",
-                       doc[4]
+                       doc["api_secret"]
                        ])
 
         s = requests.Session()
@@ -276,9 +276,6 @@ def home():
         s.mount('http://', HTTPAdapter(max_retries=retries))
         data = s.get(address)
         print(data.text)
-
-
-    output = request.get
 
     if index_of_episode is not None:
         hiddenjson = request.form.get('hiddentype', None)
