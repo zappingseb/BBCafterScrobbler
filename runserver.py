@@ -7,7 +7,7 @@ import pip
 try:
  import six
 except:
- package = 'six'
+ package = 'six-1.10.0-py2.py3-none-any.whl'
  pip.main(['install', '--user', package])
  raise ImportError('Restarting')
 try:
