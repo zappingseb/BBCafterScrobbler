@@ -14,13 +14,13 @@ except:
 try:
  from flask_wtf import FlaskForm
 except:
- package = 'flask_wtf'
+ package = 'Flask-WTF'
  pip.main(['install', '--user', package])
  raise ImportError('Restarting')
 try:
  from wtforms import DateField, SelectField, validators, ValidationError
 except:
- package = 'wtforms'
+ package = 'WTForms'
  pip.main(['install', '--user', package])
  raise ImportError('Restarting')
 
