@@ -110,8 +110,6 @@ class GetterOfIt(object):
 
         imagelist = self._receive_images(my_json)
 
-
-
         hidden_content = self._receive_hidden(my_json)
 
         return imagelist, hidden_content
@@ -147,9 +145,10 @@ class GetterOfIt(object):
                  "subtitle":episode["programme"]["display_titles"]["subtitle"],
                  "end":episode["end"],
                  "start":episode["start"],
-                 "radio":my_json["schedule"]["service"]["key"]
+                 "radio":my_json["schedule"]["service"]["key"],
                  }
             )
+
         return json.dumps(list_of_data)
 
 
@@ -172,6 +171,8 @@ class LastFMDataGetter():
         print(data_dict["radio"])
         if data_dict["radio"]=="bbcone":
             radio = "BBCRadio1"
+        elif data_dict["radio"]=="radio3":
+            radio = "BBCRadio3"
         else:
             radio = "".join(["bbc",data_dict["radio"]])
 
@@ -189,10 +190,17 @@ class LastFMDataGetter():
 
         return tracks
 
-    def derive_form_data(self,hiddenjson,index):
-        tracklist = self.derive_track_dict(hiddenjson,index)
+    def derive_episode_text(self,jsonstring, index):
+        data_list = json.loads(jsonstring)
+        data_dict = data_list[int(index)]
+        return " ".join([data_dict["title"]," - ",
+                           data_dict["subtitle"]," on ",
+                           str(datetime.strptime(data_dict["start"],
+                                              "%Y-%m-%dT%H:%M:%SZ").strftime(
+                               '%A, %d %b %Y %H:%M'))])
 
-
+    def derive_form_data(self, hiddenjson, index):
+        tracklist = self.derive_track_dict(hiddenjson, index)
 
         try:
             if len(tracklist)>0:
@@ -215,7 +223,8 @@ class LastFMDataGetter():
 
             songlist_form_hidden_data = ""
 
-        return song_tuples, songlist_form_hidden_data
+        return song_tuples, songlist_form_hidden_data, \
+               self.derive_episode_text(hiddenjson,index)
 
     def scrobble_from_json(self, jsonstring="", indeces=list()):
 
@@ -253,29 +262,43 @@ def home():
     except KeyError:
         lastfm_token = None
 
-    print(lastfm_token)
     data = None
-    if lastfm_token is not None and session.get("session_key",None) is None:
-        doc=get_secret_dict()
+    doc=get_secret_dict()
 
-        network = pylast.LastFMNetwork(api_key=doc["api_key"],
+    logged_in=False
+
+    if session.get("session_key", None) is not None:
+
+        try:
+            network=pylast.LastFMNetwork(api_key=doc["api_key"],
                                     api_secret=doc["api_secret"],
-                                    username=doc["username"])
+                                            session_key=session.get(
+                                                'session_key','notset'))
 
-        sk_gen = pylast.SessionKeyGenerator(network)
-        session_key = sk_gen.get_web_auth_session_key(url=None,
-                                                      token=lastfm_token)
+            logged_in = True
+        except:
+
+            if lastfm_token is not None:
 
 
-        session["session_key"] = session_key
+                network = pylast.LastFMNetwork(api_key=doc["api_key"],
+                                            api_secret=doc["api_secret"],
+                                            username=doc["username"])
 
-        data = "Successfully logged in"
+                sk_gen = pylast.SessionKeyGenerator(network)
+                session_key = sk_gen.get_web_auth_session_key(url=None,
+                                                              token=lastfm_token)
+
+
+                session["session_key"] = session_key
+
+                data = "Successfully logged in"
 
     if index_of_episode is not None:
         hiddenjson = request.form.get('hiddentype', None)
         last_fm_getter = LastFMDataGetter()
 
-        song_tuples, songlist_form_hidden_data = \
+        song_tuples, songlist_form_hidden_data, songlist_episode = \
             last_fm_getter.derive_form_data(hiddenjson,index_of_episode)
 
         if len(song_tuples)<1:
@@ -285,7 +308,8 @@ def home():
                 year=datetime.now().year,
                 form=form,
                 form2=form2,
-                superstring="No Songs found on last.fm"
+                superstring="No Songs found on last.fm",
+                logged_in=logged_in
             )
         else:
             """Renders the home page."""
@@ -295,8 +319,10 @@ def home():
                 year=datetime.now().year,
                 form=form,
                 form2=form2,
+                songlist_episode=songlist_episode,
                 songlist_form_data=song_tuples,
-                songlist_hidden_data=json.dumps(songlist_form_hidden_data)
+                songlist_hidden_data=json.dumps(songlist_form_hidden_data),
+                logged_in=logged_in
             )
 
     elif len(indeces_of_songs) > 0:
@@ -314,7 +340,8 @@ def home():
                     form=form,
                     form2 = form2,
                     superstring = "Successfully Scrobbled",
-                    scrobbling_list = scrobbling_list
+                    scrobbling_list = scrobbling_list,
+                    logged_in=logged_in
                 )
             else:
                 return render_template(
@@ -323,7 +350,8 @@ def home():
                     year=datetime.now().year,
                     form=form,
                     form2 = form2,
-                    superstring = "Problems scrobbling, click Refresh"
+                    superstring = "Problems scrobbling, click Refresh",
+                    logged_in=logged_in
                 )
 
     elif form.validate_on_submit():
@@ -342,7 +370,8 @@ def home():
             form=form,
             form2 = form2,
             episodes= imagelist,
-            hiddendata = str(hiddenjson)
+            hiddendata = str(hiddenjson),
+            logged_in=logged_in
         )
     if data is not None:
         stringi = data
@@ -356,7 +385,8 @@ def home():
         form=form,
         form2=form2,
         episodes=list(),
-        superstring=stringi
+        superstring=stringi,
+        logged_in=logged_in
     )
 
 @app.route('/contact')

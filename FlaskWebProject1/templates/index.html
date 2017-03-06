@@ -19,13 +19,21 @@
     </p>
     <p>A Python flask app that makes you scrobble your favourite radio show
         after you've been listening to it.</p>
+    {% if logged_in %}
+    <p><a href="http://www.last.fm/"
+          class="btn btn-success" role="button">Logged in</a>
+    </p>
+    {% else %}
     <p><a href="http://www.last.fm/api/auth/?api_key=bf4ad92d8618e0d0c0913fc214a5dab6&cb=http://myfirstflask.azurewebsites.net/"
           class="btn btn-danger" role="button">Login to last.fm</a>
     </p>
+    {% endif %}
+
 </div>
 
 <div class="row">
     <div class="col-md-5">
+        <div style="text-align:justify">
         <h2>Getting started</h2>
         <p>
             To help you scrobbling your songs from a specific Radioshow this
@@ -34,6 +42,12 @@
             and choose the date the episode you'd like to scrobble was
             on tune.
         </p>
+        <p>
+           Before you can start here you have to <a
+                href="http://www.last.fm/api/auth/?api_key=bf4ad92d8618e0d0c0913fc214a5dab6&cb=http://myfirstflask.azurewebsites.net/">login</a> at last.fm. This
+            enables scrobbling tracks later on.
+        </p>
+            </div>
         <p>
             <!-- all your CSS and JS code, including the stuff -->
             <!-- to handle the datepicker formatting -->
@@ -74,12 +88,17 @@
         </p>
 
     </div>
-    {% if songlist_form_data %}
+
     <div class="col-md-5">
+        {% if songlist_episode %}
         <h2>Choose the songs to scrobble</h2>
         <p>Here we provide a list of all the songs of
         the specific epsode. All are selected. You can scrobble
-        all or unselect songs you do not want to scrobble.</p>
+        all or unselect songs you do not want to scrobble for the episode:</p>
+        <p>
+            {{songlist_episode}}
+        </p>
+        {% if songlist_form_data %}
         <p>
             Select your songs to scrobble:<br/>
             <form name="songlist" id="songlist" method="post" action="">
@@ -96,6 +115,7 @@
             </form>
 
         </p>
+        {% endif %}
     </div>
     {% endif %}
     {% if superstring %}
