@@ -65,5 +65,5 @@ if __name__ == '__main__':
     streamHandler.setFormatter(formatter)
     app.logger.addHandler(fileHandler)
     app.logger.addHandler(streamHandler)
-    app.logger.info("Logging is set up.")
+    app.logger.info("Logging is set up...")
     app.run(HOST, PORT, debug=True)
