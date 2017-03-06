@@ -36,6 +36,12 @@ from os import environ
 from FlaskWebProject1 import app
 
 if __name__ == '__main__':
+    try:
+     from flask_wtf import FlaskForm
+    except:
+     package = 'Flask-WTF'
+     pip.main(['install', '--user', package])
+     raise ImportError('Restarting')
     HOST = environ.get('SERVER_HOST', 'localhost')
     try:
         PORT = int(environ.get('SERVER_PORT', '5555'))
