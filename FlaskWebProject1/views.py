@@ -260,7 +260,7 @@ def home():
     data = None
     if lastfm_token is not None:
         doc=get_secret_dict()
-        address = "".join(["https://www.last.fm/api/auth?token=",
+        address = "".join(["https://www.last.fm/api/auth/?token=",
                        lastfm_token,
                        "&api_key=",
                        doc["api_key"],
