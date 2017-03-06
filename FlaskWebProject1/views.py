@@ -257,6 +257,7 @@ def home():
         lastfm_token = None
 
     print(lastfm_token)
+    data = None
     if lastfm_token is not None:
         doc=get_secret_dict()
         address = "".join(["http://ws.audioscrobbler.com/2.0/?method=auth.getSession?token=",
@@ -349,6 +350,10 @@ def home():
             episodes= imagelist,
             hiddendata = str(hiddenjson)
         )
+    if data is not None:
+        stringi = data.text
+    else:
+        stringi = None
 
     """Renders the home page."""
     return render_template(
@@ -357,7 +362,8 @@ def home():
         year=datetime.now().year,
         form=form,
         form2=form2,
-        episodes=list()
+        episodes=list(),
+        superstring=stringi
     )
 
 @app.route('/contact')
