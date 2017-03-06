@@ -8,34 +8,7 @@ from FlaskWebProject1 import app
 import os
 import pip
 import json
-try:
- import pylast
- from pylast import NetworkError, WSError
-except:
- package = 'pylast'
- pip.main(['install', '--user', package])
- raise ImportError('Restarting')
-try:
- from flask_wtf import FlaskForm
-except:
- package = 'flask_wtf'
- pip.main(['install', '--user', package])
- raise ImportError('Restarting')
-try:
- from wtforms import DateField, SelectField, validators, ValidationError
-except:
- package = 'wtforms'
- pip.main(['install', '--user', package])
- raise ImportError('Restarting')
 
-try:
-  import requests
-  from requests.packages.urllib3.util.retry import Retry
-  from requests.adapters import HTTPAdapter, ConnectionError
-except:
- package = 'requests'
- pip.main(['install', '--user', package])
- raise ImportError('Restarting')
 
 
 

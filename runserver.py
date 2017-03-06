@@ -3,6 +3,35 @@ This script runs the FlaskWebProject1 application using a development server.
 """
 
 from os import environ
+import pip
+try:
+ import pylast
+ from pylast import NetworkError, WSError
+except:
+ package = 'pylast'
+ pip.main(['install', '--user', package])
+ raise ImportError('Restarting')
+try:
+ from flask_wtf import FlaskForm
+except:
+ package = 'flask_wtf'
+ pip.main(['install', '--user', package])
+ raise ImportError('Restarting')
+try:
+ from wtforms import DateField, SelectField, validators, ValidationError
+except:
+ package = 'wtforms'
+ pip.main(['install', '--user', package])
+ raise ImportError('Restarting')
+
+try:
+  import requests
+  from requests.packages.urllib3.util.retry import Retry
+  from requests.adapters import HTTPAdapter, ConnectionError
+except:
+ package = 'requests'
+ pip.main(['install', '--user', package])
+ raise ImportError('Restarting')
 from FlaskWebProject1 import app
 
 if __name__ == '__main__':
