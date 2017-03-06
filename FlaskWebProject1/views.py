@@ -267,7 +267,7 @@ def home():
                        "&api_sig=",
                        doc["api_secret"]
                        ])
-        print("YEH")
+        print("YEsH")
         s = requests.Session()
 
         retries = Retry(total=1,
