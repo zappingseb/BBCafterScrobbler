@@ -1,7 +1,9 @@
+--find-links
 Flask<1
 pandas>0.19.1
 pylast==1.8.0
 wtforms
 flask_wtf
+flask-wtf
 requests
 datetime
