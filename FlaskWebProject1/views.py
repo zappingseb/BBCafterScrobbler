@@ -34,12 +34,13 @@ def validate_it(form, chain):
 
     input_time = datetime.strptime(chain.raw_data[0], chain.format)
 
-    if input_time>datetime.today():
+    if input_time > datetime.today():
         raise ValidationError("Please do not use a date in the future")
 
 
 class DateForm(FlaskForm):
     dt = DateField('Pick a date', format="%m/%d/%Y", validators=[validate_it])
+
 
 class BBCStationList(FlaskForm):
     # https://github.com/duckduckgo/zeroclickinfo-spice/blob/master/lib/DDG/Spice/BBC.pm
@@ -55,6 +56,9 @@ class BBCStationList(FlaskForm):
 
 class GetterOfIt(object):
     def get_bbc_json(self, datestring, radiostation_name):
+
+        print("WENT TO BBC FUNCTION")
+
         s = requests.Session()
 
         datestring_new = datetime.strptime(datestring, "%m/%d/%y").strftime('%Y/%m/%d')
@@ -101,6 +105,8 @@ class GetterOfIt(object):
                 my_json = json.loads(request.text)
             except ConnectionError:
                  my_json = json.load(open("FlaskWebProject1/static/tests/yesterday.json"))
+
+        print("GOT JSON")
 
         imagelist = self._receive_images(my_json)
 
@@ -160,7 +166,9 @@ class LastFMDataGetter():
                                     username=doc["username"],
                                     password_hash=doc["password_hash"])
 
-    def derive_track_dict(self,jsonstring,index):
+    def derive_track_dict(self,
+                          jsonstring,
+                          index):
         data_list = json.loads(jsonstring)
         data_dict = data_list[int(index)]
 
@@ -184,72 +192,166 @@ class LastFMDataGetter():
 
         return tracks
 
+    def derive_form_data(self,hiddenjson,index):
+        tracklist = self.derive_track_dict(hiddenjson,index)
 
+
+
+        try:
+            if len(tracklist)>0:
+                for i,track in enumerate(tracklist):
+
+                    song_tuples = [(i," - ".join([track.track.artist.name,
+                                                  track.track.title]))
+                                   for i,track in enumerate(tracklist)]
+
+                    songlist_form_hidden_data = [{"title":track.track.title,
+                                   "artist":track.track.artist.name,
+                                   "timestamp":track.timestamp}
+                                                 for track in tracklist]
+            else:
+                song_tuples=[]
+                songlist_form_hidden_data=""
+        except NetworkError:
+            song_tuples = [(1,"testsong"),
+                               (2,"testsong2")]
+
+            songlist_form_hidden_data = ""
+
+        return song_tuples, songlist_form_hidden_data
+
+    def scrobble_from_json(self, jsonstring="", indeces=list()):
+
+        data_list = json.loads(jsonstring)
+
+        tracklist = [{"title":data_list[index]["title"],
+                      "artist":data_list[index]["artist"],
+                      "timestamp":data_list[index]["timestamp"]}
+                     for index in indeces]
+        print("in_scrobble")
+        self.network.scrobble_many(tracks=tracklist)
+
+        scrobbling_list = [" - ".join([
+            data_list[index]["artist"],
+            data_list[index]["title"],
+            datetime.fromtimestamp(int(
+                data_list[index]["timestamp"])
+            ).strftime('%Y-%m-%d %H:%M')
+        ])]
+
+        return scrobbling_list
 
 @app.route('/', methods=['post', 'get'])
 @app.route('/home')
 def home():
+
     form = DateForm()
     form2 = BBCStationList()
 
+    index_of_episode = request.form.get('webmenu', None)
+
+    indeces_of_songs = request.form.getlist('songs',None)
+
+    lastfm_token = request.headers['token']
+
+    print(lastfm_token)
 
 
+    if lastfm_token is not None:
+        doc=get_secret_dict()
+        address = "".join(["https://www.last.fm/api/auth.getSession?token=",
+                       lastfm_token,
+                       "&api_key=",
+                       doc[3],
+                       "&api_sig=",
+                       doc[4]
+                       ])
 
-    index = request.form.get('webmenu', None)
-    if index is not None:
+        s = requests.Session()
+
+        retries = Retry(total=1,
+                            backoff_factor=0.1,
+                            status_forcelist=[ 500, 502, 503, 504])
+
+        s.mount('http://', HTTPAdapter(max_retries=retries))
+        data = s.get(address)
+        print(data.text)
+
+
+    output = request.get
+
+    if index_of_episode is not None:
         hiddenjson = request.form.get('hiddentype', None)
-        try:
-            last_fm_getter = LastFMDataGetter()
-            tracklist = last_fm_getter.derive_track_dict(hiddenjson,index)
-            #print(str(select))
-            #print(hiddenjson)
+        last_fm_getter = LastFMDataGetter()
 
-            song_tuples = list()
-            for i,track in enumerate(tracklist):
-                try:
-                    album = pylast.Album(artist=track.track.artist,
-                                         title=track.track.title,
-                                         network = last_fm_getter.network)
-                    print(album)
-                    image = album.get_cover_image(0)
-                except WSError:
-                    image = ""
+        song_tuples, songlist_form_hidden_data = \
+            last_fm_getter.derive_form_data(hiddenjson,index_of_episode)
 
-                song_tuples.append((i,track.track.title,image))
-            print(song_tuples[0][2])
-        except NetworkError:
-            song_tuples = [(1,"testsong","static/content/cover1.jpg"), (2,"testsong2","static/content/cover2.jpg")]
-
-        songlist_form_hidden_data = ""
-        songlist_form_data= song_tuples
-        """Renders the home page."""
-        return render_template(
-            'index.html',
-            title='Home Page',
-            year=datetime.now().year,
-            form=form,
-            form2=form2,
-            songlist_form_data=songlist_form_data,
-            episodes=list()
-        )
-
-    elif form.is_submitted():
-        if form.validate_on_submit():
-            my_getter = GetterOfIt()
-            imagelist, hiddenjson = my_getter.get_bbc_json(datestring=form.dt.data.strftime('%x'),
-                                            radiostation_name=form2.radiostation.data)
-
-            print(hiddenjson)
-
+        if len(song_tuples)<1:
             return render_template(
                 'index.html',
                 title='Home Page',
                 year=datetime.now().year,
                 form=form,
-                form2 = form2,
-                episodes= imagelist,
-                hiddendata = str(hiddenjson)
+                form2=form2,
+                superstring="No Songs found on last.fm"
             )
+        else:
+            """Renders the home page."""
+            return render_template(
+                'index.html',
+                title='Home Page',
+                year=datetime.now().year,
+                form=form,
+                form2=form2,
+                songlist_form_data=song_tuples,
+                songlist_hidden_data=json.dumps(songlist_form_hidden_data)
+            )
+
+    elif len(indeces_of_songs) > 0:
+        indeces_of_songs = [int(song) for song in indeces_of_songs]
+        hiddenjson = request.form.get('hiddensongs', None)
+        if hiddenjson is not None:
+            last_fm_getter = LastFMDataGetter()
+            scrobbling_list = last_fm_getter.scrobble_from_json(hiddenjson,
+                                                                indeces_of_songs)
+            if scrobbling_list:
+                return render_template(
+                    'index.html',
+                    title='Home Page',
+                    year=datetime.now().year,
+                    form=form,
+                    form2 = form2,
+                    superstring = "Successfully Scrobbled",
+                    scrobbling_list = scrobbling_list
+                )
+            else:
+                return render_template(
+                    'index.html',
+                    title='Home Page',
+                    year=datetime.now().year,
+                    form=form,
+                    form2 = form2,
+                    superstring = "Problems scrobbling, click Refresh"
+                )
+
+    elif form.validate_on_submit():
+        print("mygetter")
+        my_getter = GetterOfIt()
+        imagelist, hiddenjson = my_getter.get_bbc_json(datestring=form.dt.data.strftime('%x'),
+                                        radiostation_name=form2.radiostation.data)
+
+        print(hiddenjson)
+
+        return render_template(
+            'index.html',
+            title='Home Page',
+            year=datetime.now().year,
+            form=form,
+            form2 = form2,
+            episodes= imagelist,
+            hiddendata = str(hiddenjson)
+        )
 
     """Renders the home page."""
     return render_template(

@@ -3,9 +3,25 @@
 {% block content %}
 
 <div class="jumbotron">
-    <h1>Flask 123</h1>
-    <p class="lead">Flask is a free web framework for building great Web sites and Web applications using HTML, CSS and JavaScript.</p>
-    <p><a href="http://flask.pocoo.org/" class="btn btn-primary btn-large">Learn more &raquo;</a></p>
+
+    <p><div
+            style="float:left;height:70px;postion:relative"><img
+            style="height:70px;" src="static/images/BBC_portal_logo.svg.png">
+      </div>
+      <div
+            style="float:left;position:relative;left:-100px;height:70px"><img
+            style="height:70px;" src="static/images/Lastfm_logo.svg.png">
+      </div><div
+            style="float:left;position:relative;left:-80px;height:70px;margin-bottom:30px"><h1
+        style="margin-top:15px">
+    Scrobbler</h1></div>
+
+    </p>
+    <p>A Python flask app that makes you scrobble your favourite radio show
+        after you've been listening to it.</p>
+    <p><a href="http://www.last.fm/api/auth/?api_key=bf4ad92d8618e0d0c0913fc214a5dab6&cb=http://myfirstflask.azurewebsites.net/"
+          class="btn btn-danger" role="button">Login to last.fm</a>
+    </p>
 </div>
 
 <div class="row">
@@ -28,19 +44,22 @@
                 <p>Radiostation:
                 {{ form2.radiostation() }}
                 {% if form2.radiostation.errors %}
-                    <ul class="errors">{% for error in form2.radiostation.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                        <ul class="errors">
+                          {% for error in form2.radiostation.errors %}
+                          <li>{{ error }}</li>{%endfor %}
+                        </ul>
                 {% endif %}
                 </p><p>Date Month/Day/Year:</p>
                 {{ form.hidden_tag() }}
                 {{ form.dt(class="dtpick") }}
                 {% if form.dt.errors %}
-                    <ul class="validation-summary-errors">}{% for error in form.dt.errors %}<li>{{ error }}</li>{% endfor %}</ul>
+                    <ul class="validation-summary-errors">{% for error in form.dt.errors %}<li>{{ error }}</li>{% endfor %}</ul>
                 {% endif %}
                 <p/><p><button type="submit">Get the episodes</button></p>
             </form>
         </p>
         <p>
-            {% if episodes.__len__() >0 %}
+            {% if episodes %}
             Select your specific show:<br/>
             <form name="webi" id="webi" method="post" action="">
                 <input type="hidden" name="hiddentype" id="hiddentype" value="{{ hiddendata }}">
@@ -63,16 +82,32 @@
         all or unselect songs you do not want to scrobble.</p>
         <p>
             Select your songs to scrobble:<br/>
-            <form name="songlist" id="songlist" method="songlist" action="">
-                <select multiple name="songs" id="songs" size="{{text.__len__()}}">
+            <form name="songlist" id="songlist" method="post" action="">
+                <input type="hidden" name="hiddensongs" id="hiddensongs"
+                       value="{{ songlist_hidden_data }}">
+                <select multiple name="songs" id="songs"
+                        size="{{text.__len__()}}">
+
                {% for i in range(songlist_form_data.__len__()) %}
-                    <option selected=TRUE value="{{i}}" data-image="{{ songlist_form_data[i][2] }}">{{songlist_form_data[i][1]}}</option>
+                    <option selected=TRUE value="{{i}}">{{songlist_form_data[i][1]}}</option>
                {% endfor %}
                 </select>
                 <br/><button type="submit">Scrobble them now!</button>
             </form>
 
         </p>
+    </div>
+    {% endif %}
+    {% if superstring %}
+    <div class="col-md-5">
+        <h2>{{superstring}}</h2>
+        {% if scrobbling_list %}
+        <ul>
+            {% for i in range(scrobbling_list.__len__()) %}
+            <li>{{ scrobbling_list[i] }}</li>
+            {% endfor %}
+        </ul>
+        {% endif %}
     </div>
     {% endif %}
 </div>
