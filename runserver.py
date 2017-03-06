@@ -66,4 +66,4 @@ if __name__ == '__main__':
     app.logger.addHandler(fileHandler)
     app.logger.addHandler(streamHandler)
     app.logger.info("Logging is set up...")
-    app.run(HOST, PORT, debug=True)
+    app.run(HOST, PORT, debug=True, threaded=True)
