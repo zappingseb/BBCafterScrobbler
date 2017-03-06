@@ -7,6 +7,23 @@
     <link rel="stylesheet" type="text/css" href="/static/content/bootstrap.min.css" />
     <link rel="stylesheet" type="text/css" href="/static/content/site.css" />
     <script src="/static/scripts/modernizr-2.6.2.js"></script>
+    <link rel="stylesheet" type="text/css" href="/static/scripts/jquery-ui.min.css">
+    <link rel="stylesheet" type="text/css" href="/static/content/dd.css">
+	<script src="/static/scripts/jquery-1.10.2.min.js"></script>
+	<script src="/static/scripts/jquery-ui.min.js"></script>
+    <script src="/static/scripts/jquery.dd.min.js"></script>
+	<script>
+	$(function() {
+		$( ".dtpick" ).datepicker();
+	});
+	$(document).ready(function(e) {
+    try {
+        $("body select").msDropDown();
+    } catch(e) {
+        alert(e.message);
+    }
+    });
+	</script>
 </head>
 
 <body>
@@ -38,7 +55,6 @@
         </footer>
     </div>
 
-    <script src="/static/scripts/jquery-1.10.2.js"></script>
     <script src="/static/scripts/bootstrap.js"></script>
     <script src="/static/scripts/respond.js"></script>
     {% block scripts %}{% endblock %}
