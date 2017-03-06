@@ -5,15 +5,45 @@ Routes and views for the flask application.
 from datetime import datetime
 from flask import render_template, request
 from FlaskWebProject1 import app
-from flask_wtf import FlaskForm
-from wtforms import DateField, SelectField, validators, ValidationError
-import requests
-from requests.packages.urllib3.util.retry import Retry
-from requests.adapters import HTTPAdapter, ConnectionError
-import json
-import pylast
-from pylast import NetworkError, WSError
 import os
+import pip
+
+try:
+ import pylast
+ from pylast import NetworkError, WSError
+except:
+ package = 'pylast'
+ pip.main(['install', '--user', package])
+ raise ImportError('Restarting')
+try:
+ from flask_wtf import FlaskForm
+except:
+ package = 'flask_wtf'
+ pip.main(['install', '--user', package])
+ raise ImportError('Restarting')
+try:
+ from wtforms import DateField, SelectField, validators, ValidationError
+except:
+ package = 'wtforms'
+ pip.main(['install', '--user', package])
+ raise ImportError('Restarting')
+
+try:
+  import requests
+  from requests.packages.urllib3.util.retry import Retry
+  from requests.adapters import HTTPAdapter, ConnectionError
+except:
+ package = 'requests'
+ pip.main(['install', '--user', package])
+ raise ImportError('Restarting')
+
+
+
+
+
+
+
+
 
 def get_secret_dict(secrets_file="FlaskWebProject1/static/content/test_pylast.yaml"):
     if os.path.isfile(secrets_file):
