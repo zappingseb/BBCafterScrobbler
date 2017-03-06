@@ -56,8 +56,9 @@ if __name__ == '__main__':
         PORT = 5555
     import logging
 
-    app.debug = True
+
     handler = logging.FileHandler('app.log')  # errors logged to this file
-    handler.setLevel(logging.ERROR) # only log errors and above
+    handler.setLevel(logging.WARN) # only log errors and above
+    app.debug = True
     app.logger.addHandler(handler)
-    app.run(HOST, PORT, debug=True, threaded=True)
+    app.run(HOST, PORT, debug=True)

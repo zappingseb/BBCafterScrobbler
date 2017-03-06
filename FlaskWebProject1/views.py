@@ -3,7 +3,7 @@ Routes and views for the flask application.
 """
 
 from datetime import datetime
-from flask import render_template, request
+from flask import render_template, request, session
 from FlaskWebProject1 import app
 import os
 import pip
@@ -158,13 +158,10 @@ class LastFMDataGetter():
     def __init__(self):
         doc = get_secret_dict()
 
-
-
-
         self.network = pylast.LastFMNetwork(api_key=doc["api_key"],
                                     api_secret=doc["api_secret"],
-                                    username=doc["username"],
-                                    password_hash=doc["password_hash"])
+                                            session_key=session.get(
+                                                'session_key','notset'))
 
     def derive_track_dict(self,
                           jsonstring,
@@ -258,25 +255,21 @@ def home():
 
     print(lastfm_token)
     data = None
-    if lastfm_token is not None:
+    if lastfm_token is not None and session.get("session_key",None) is None:
         doc=get_secret_dict()
-        address = "".join(["https://www.last.fm/api/auth/?token=",
-                       lastfm_token,
-                       "&api_key=",
-                       doc["api_key"],
-                       "&api_sig=",
-                       doc["api_secret"]
-                       ])
-        print("YEsH")
-        s = requests.Session()
 
-        retries = Retry(total=2,
-                            backoff_factor=0.1,
-                            status_forcelist=[ 500, 502, 503, 504])
+        network = pylast.LastFMNetwork(api_key=doc["api_key"],
+                                    api_secret=doc["api_secret"],
+                                    username=doc["username"])
 
-        s.mount('http://', HTTPAdapter(max_retries=retries))
-        data = s.get(address)
-        print(data.text)
+        sk_gen = pylast.SessionKeyGenerator(network)
+        session_key = sk_gen.get_web_auth_session_key(url=None,
+                                                      token=lastfm_token)
+
+
+        data = session_key
+
+        session["session_key"] = session_key
 
     if index_of_episode is not None:
         hiddenjson = request.form.get('hiddentype', None)
@@ -334,6 +327,7 @@ def home():
                 )
 
     elif form.validate_on_submit():
+
         print("mygetter")
         my_getter = GetterOfIt()
         imagelist, hiddenjson = my_getter.get_bbc_json(datestring=form.dt.data.strftime('%x'),
@@ -351,10 +345,9 @@ def home():
             hiddendata = str(hiddenjson)
         )
     if data is not None:
-        stringi = data.text
+        stringi = data
     else:
         stringi = None
-
     """Renders the home page."""
     return render_template(
         'index.html',
