@@ -273,7 +273,7 @@ def home():
             network=pylast.LastFMNetwork(api_key=doc["api_key"],
                                     api_secret=doc["api_secret"],
                                             session_key=session.get(
-                                                'session_key','notset'))
+                                                'session_key','notsset'))
 
             logged_in = True
         except:
