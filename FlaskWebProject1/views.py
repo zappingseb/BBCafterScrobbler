@@ -270,7 +270,7 @@ def home():
         print("YEsH")
         s = requests.Session()
 
-        retries = Retry(total=1,
+        retries = Retry(total=2,
                             backoff_factor=0.1,
                             status_forcelist=[ 500, 502, 503, 504])
 

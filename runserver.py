@@ -40,6 +40,7 @@ except:
  raise ImportError('Restarting')
 from os import environ
 from FlaskWebProject1 import app
+import logging
 
 if __name__ == '__main__':
     try:
@@ -53,5 +54,16 @@ if __name__ == '__main__':
         PORT = int(environ.get('SERVER_PORT', '5555'))
     except ValueError:
         PORT = 5555
-    app.debug = True
-    app.run(HOST, PORT,debug=True)
+    logFormatStr = '[%(asctime)s] p%(process)s {%(pathname)s:%(lineno)d} %(levelname)s - %(message)s'
+    logging.basicConfig(format = logFormatStr, filename = "global.log", level=logging.DEBUG)
+    formatter = logging.Formatter(logFormatStr,'%m-%d %H:%M:%S')
+    fileHandler = logging.FileHandler("summary.log")
+    fileHandler.setLevel(logging.DEBUG)
+    fileHandler.setFormatter(formatter)
+    streamHandler = logging.StreamHandler()
+    streamHandler.setLevel(logging.DEBUG)
+    streamHandler.setFormatter(formatter)
+    app.logger.addHandler(fileHandler)
+    app.logger.addHandler(streamHandler)
+    app.logger.info("Logging is set up.")
+    app.run(HOST, PORT, debug=True)
