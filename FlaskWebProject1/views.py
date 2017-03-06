@@ -267,9 +267,9 @@ def home():
                                                       token=lastfm_token)
 
 
-        data = session_key
-
         session["session_key"] = session_key
+
+        data = "Successfully logged in"
 
     if index_of_episode is not None:
         hiddenjson = request.form.get('hiddentype', None)
