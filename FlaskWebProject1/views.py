@@ -260,7 +260,8 @@ def home():
     data = None
     if lastfm_token is not None:
         doc=get_secret_dict()
-        address = "".join(["http://ws.audioscrobbler.com/2.0/?method=auth.getSession?token=",
+        address = "".join(["http://ws.audioscrobbler.com/2.0/?method=Auth.auth"
+                           ".getSession?token=",
                        lastfm_token,
                        "&api_key=",
                        doc["api_key"],
