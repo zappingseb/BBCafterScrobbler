@@ -304,7 +304,7 @@ def home():
         if len(song_tuples)<1:
             return render_template(
                 'index.html',
-                title='Home Page',
+                title='BBC last.fm - ',
                 year=datetime.now().year,
                 form=form,
                 form2=form2,
@@ -312,10 +312,10 @@ def home():
                 logged_in=logged_in
             )
         else:
-            """Renders the home page."""
+            """Renders the BBC last.fm - ."""
             return render_template(
                 'index.html',
-                title='Home Page',
+                title='BBC last.fm - ',
                 year=datetime.now().year,
                 form=form,
                 form2=form2,
@@ -335,7 +335,7 @@ def home():
             if scrobbling_list:
                 return render_template(
                     'index.html',
-                    title='Home Page',
+                    title='BBC last.fm - ',
                     year=datetime.now().year,
                     form=form,
                     form2 = form2,
@@ -346,7 +346,7 @@ def home():
             else:
                 return render_template(
                     'index.html',
-                    title='Home Page',
+                    title='BBC last.fm - ',
                     year=datetime.now().year,
                     form=form,
                     form2 = form2,
@@ -365,7 +365,7 @@ def home():
 
         return render_template(
             'index.html',
-            title='Home Page',
+            title='BBC last.fm - ',
             year=datetime.now().year,
             form=form,
             form2 = form2,
@@ -377,10 +377,10 @@ def home():
         stringi = data
     else:
         stringi = None
-    """Renders the home page."""
+    """Renders the BBC last.fm - ."""
     return render_template(
         'index.html',
-        title='Home Page',
+        title='BBC last.fm - ',
         year=datetime.now().year,
         form=form,
         form2=form2,
