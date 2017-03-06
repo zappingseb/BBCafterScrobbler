@@ -2,7 +2,7 @@
 This script runs the FlaskWebProject1 application using a development server.
 """
 
-from os import environ
+
 import pip
 try:
  import pylast
@@ -32,6 +32,7 @@ except:
  package = 'requests'
  pip.main(['install', '--user', package])
  raise ImportError('Restarting')
+from os import environ
 from FlaskWebProject1 import app
 
 if __name__ == '__main__':
