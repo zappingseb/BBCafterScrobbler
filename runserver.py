@@ -5,6 +5,12 @@ This script runs the FlaskWebProject1 application using a development server.
 
 import pip
 try:
+ import six
+except:
+ package = 'six'
+ pip.main(['install', '--user', package])
+ raise ImportError('Restarting')
+try:
  import pylast
  from pylast import NetworkError, WSError
 except:
