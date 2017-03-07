@@ -1,4 +1,4 @@
-# ![image](http://myfirstflask.azurewebsites.net/static/images/both_logos.png){width="150px"} BBC After Scrobbler
+# ![image](http://myfirstflask.azurewebsites.net/static/images/both_logos.png) BBC After Scrobbler
 
 A tool to make you scrobble whole BBC Radio shows after the emisson to last.fm
 
@@ -22,18 +22,18 @@ The documentation for a flask azure app can be found under in this [PDF](http://
 
 To use the app four steps are needed.
 
-1. Login to last.fm via the button
+1) Login to last.fm via the button
 
-2. Select a radio station and a date to find all episodes of that station at
+2) Select a radio station and a date to find all episodes of that station at
 a certain day:
 
 ![Usage first](http://myfirstflask.azurewebsites.net/static/images/screen1.JPG)
 
-3. Choose a radio station and get the scrobbles.
+3) Choose a radio station and get the scrobbles.
 
 ![Usage second](http://myfirstflask.azurewebsites.net/static/images/screen2.JPG)
 
-4. Select the songs to scrobble and Send them to last.fm. They will be send
+4) Select the songs to scrobble and Send them to last.fm. They will be send
 including the timestamp.
 
 ![Usage last](http://myfirstflask.azurewebsites.net/static/images/screen3.JPG)
