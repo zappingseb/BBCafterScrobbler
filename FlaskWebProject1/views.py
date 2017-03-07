@@ -380,7 +380,8 @@ def home():
             form2 = form2,
             episodes= imagelist,
             hiddendata = str(hiddenjson),
-            logged_in=logged_in
+            logged_in=logged_in,
+            set_tab="episodefinder"
         )
     if data is not None:
         stringi = data

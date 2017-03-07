@@ -4,19 +4,15 @@
 
 <div class="jumbotron">
 
-    <p><div
-            style="float:left;height:70px;postion:relative"><img
-            style="height:70px;" src="static/images/BBC_portal_logo.svg.png">
+    <div style="overflow:hidden">
+      <div  style="float:left;height:70px;postion:relative"><img
+            style="height:70px;float:left" src="static/images/both_logos.png">
       </div>
-      <div
-            style="float:left;position:relative;left:-100px;height:70px"><img
-            style="height:70px;" src="static/images/Lastfm_logo.svg.png">
-      </div><div
-            style="float:left;position:relative;left:-80px;height:70px;margin-bottom:30px"><h1
-        style="margin-top:15px">
-    Scrobbler</h1></div>
+      <div style="height:70px;margin-bottom:30px"><h1
+        style="margin-top:15px;margin-right:15px">Scrobbler</h1></div>
 
-    </p>
+    </div>
+    <div>
     <p>A Python flask app that makes you scrobble your favourite radio show
         after you've been listening to it.</p>
     {% if logged_in %}
@@ -28,6 +24,7 @@
           class="btn btn-danger" role="button">Login to last.fm</a>
     </p>
     {% endif %}
+        </div>
 
 </div>
 
@@ -52,7 +49,7 @@
             <!-- all your CSS and JS code, including the stuff -->
             <!-- to handle the datepicker formatting -->
 
-            Find Episodes:
+            Find Episodes<a name="episodefinder"></a>:
 
             <form name="first" method="post" action="">
                 <p>Radiostation:

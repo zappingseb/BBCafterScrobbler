@@ -23,6 +23,9 @@
         alert(e.message);
     }
     });
+    {% if set_tab %}
+       $(function(){ window.location.hash = {{ set_tab }}; });
+    {%endif%}
 	</script>
     <link rel="icon" href="static/images/favicon.ico" />
 </head>
