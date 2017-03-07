@@ -36,7 +36,7 @@ import requests
 from requests.packages.urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter, ConnectionError
 import pylast
-from pylast import NetworkError
+from pylast import NetworkError, WSError
 import yaml
 
 def get_secret_dict(secrets_file="FlaskWebProject1/static/content/test_pylast.yaml"):
@@ -479,9 +479,12 @@ class LoginCheck(object):
                                             username=doc["username"])
 
                 # Create a session key by using pylast
-                sk_gen = pylast.SessionKeyGenerator(network)
-                session_key = sk_gen.get_web_auth_session_key(url=None,
-                                                              token=lastfm_token)
+                try:
+                    sk_gen = pylast.SessionKeyGenerator(network)
+                    session_key = sk_gen.get_web_auth_session_key(url=None,
+                                                                  token=lastfm_token)
+                except WSError:
+                    return False
 
                 session["session_key"] = session_key
 
