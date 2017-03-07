@@ -6,10 +6,8 @@ from datetime import datetime
 from flask import render_template, request, session
 from FlaskWebProject1 import app
 import os
-import pip
 import json
 
-import six
 from flask_wtf import FlaskForm
 from wtforms import DateField, SelectField, validators, ValidationError
 import requests
@@ -19,11 +17,8 @@ import pylast
 from pylast import NetworkError, WSError
 import yaml
 
-
-
 def get_secret_dict(secrets_file="FlaskWebProject1/static/content/test_pylast.yaml"):
     if os.path.isfile(secrets_file):
-        import yaml  # pip install pyyaml
         with open(secrets_file, "r") as f:  # see example_test_pylast.yaml
             doc = yaml.load(f)
     else:
