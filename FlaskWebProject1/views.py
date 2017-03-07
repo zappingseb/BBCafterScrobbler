@@ -238,7 +238,7 @@ class LastFMDataGetter():
             datetime.fromtimestamp(int(
                 data_list[index]["timestamp"])
             ).strftime('%Y-%m-%d %H:%M')
-        ])]
+        ]) for index in indeces]
 
         return scrobbling_list
 
