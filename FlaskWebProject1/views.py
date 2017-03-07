@@ -273,26 +273,35 @@ def home():
             network=pylast.LastFMNetwork(api_key=doc["api_key"],
                                     api_secret=doc["api_secret"],
                                             session_key=session.get(
-                                                'session_key','notsset'))
+                                                'session_key',None))
 
             logged_in = True
         except:
+            return render_template(
+                'index.html',
+                title='BBC last.fm - ',
+                year=datetime.now().year,
+                form=form,
+                form2=form2,
+                superstring="Please login again",
+            )
+    else:
+        if lastfm_token is not None:
 
-            if lastfm_token is not None:
 
+            network = pylast.LastFMNetwork(api_key=doc["api_key"],
+                                        api_secret=doc["api_secret"],
+                                        username=doc["username"])
 
-                network = pylast.LastFMNetwork(api_key=doc["api_key"],
-                                            api_secret=doc["api_secret"],
-                                            username=doc["username"])
+            sk_gen = pylast.SessionKeyGenerator(network)
+            session_key = sk_gen.get_web_auth_session_key(url=None,
+                                                          token=lastfm_token)
 
-                sk_gen = pylast.SessionKeyGenerator(network)
-                session_key = sk_gen.get_web_auth_session_key(url=None,
-                                                              token=lastfm_token)
+            session["session_key"] = session_key
 
+            data = "Successfully logged in"
 
-                session["session_key"] = session_key
-
-                data = "Successfully logged in"
+            logged_in = True
 
     if index_of_episode is not None:
         hiddenjson = request.form.get('hiddentype', None)
