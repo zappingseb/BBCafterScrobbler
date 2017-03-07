@@ -247,6 +247,40 @@ class LastFMDataGetter():
 
         return scrobbling_list
 
+class LoginCheck(object):
+    def check(self,the_session_key, lastfm_token):
+        doc = get_secret_dict()
+        if the_session_key is not None:
+
+            try:
+                network=pylast.LastFMNetwork(api_key=doc["api_key"],
+                                        api_secret=doc["api_secret"],
+                                                session_key=the_session_key)
+
+                logged_in = True
+            except:
+                logged_in = False
+
+            return logged_in
+        else:
+            if lastfm_token is not None:
+
+                network = pylast.LastFMNetwork(api_key=doc["api_key"],
+                                            api_secret=doc["api_secret"],
+                                            username=doc["username"])
+
+                sk_gen = pylast.SessionKeyGenerator(network)
+                session_key = sk_gen.get_web_auth_session_key(url=None,
+                                                              token=lastfm_token)
+
+                session["session_key"] = session_key
+
+                return True
+
+            else:
+                return False
+
+
 @app.route('/', methods=['post', 'get'])
 @app.route('/home')
 def home():
@@ -257,147 +291,120 @@ def home():
     index_of_episode = request.form.get('webmenu', None)
 
     indeces_of_songs = request.form.getlist('songs',None)
-    try:
-        lastfm_token = request.args.get('token')
-    except KeyError:
-        lastfm_token = None
 
-    data = None
-    doc=get_secret_dict()
+    lastfm_token = request.args.get('token',None)
 
-    logged_in=False
-
-    if session.get("session_key", None) is not None:
-
-        try:
-            network=pylast.LastFMNetwork(api_key=doc["api_key"],
-                                    api_secret=doc["api_secret"],
-                                            session_key=session.get(
-                                                'session_key',None))
-
-            logged_in = True
-        except:
-            return render_template(
-                'index.html',
-                title='BBC last.fm - ',
-                year=datetime.now().year,
-                form=form,
-                form2=form2,
-                superstring="Please login again",
-            )
-    else:
-        if lastfm_token is not None:
+    the_session_key = session.get("session_key", None)
 
 
-            network = pylast.LastFMNetwork(api_key=doc["api_key"],
-                                        api_secret=doc["api_secret"],
-                                        username=doc["username"])
 
-            sk_gen = pylast.SessionKeyGenerator(network)
-            session_key = sk_gen.get_web_auth_session_key(url=None,
-                                                          token=lastfm_token)
+    login_checker = LoginCheck()
 
-            session["session_key"] = session_key
+    logged_in = login_checker.check(the_session_key, lastfm_token)
 
-            data = "Successfully logged in"
+    if logged_in:
 
-            logged_in = True
-
-    if index_of_episode is not None:
-        hiddenjson = request.form.get('hiddentype', None)
-        last_fm_getter = LastFMDataGetter()
-
-        song_tuples, songlist_form_hidden_data, songlist_episode = \
-            last_fm_getter.derive_form_data(hiddenjson,index_of_episode)
-
-        if len(song_tuples)<1:
-            return render_template(
-                'index.html',
-                title='BBC last.fm - ',
-                year=datetime.now().year,
-                form=form,
-                form2=form2,
-                superstring="No Songs found on last.fm",
-                logged_in=logged_in
-            )
-        else:
-            """Renders the BBC last.fm - ."""
-            return render_template(
-                'index.html',
-                title='BBC last.fm - ',
-                year=datetime.now().year,
-                form=form,
-                form2=form2,
-                songlist_episode=songlist_episode,
-                songlist_form_data=song_tuples,
-                songlist_hidden_data=json.dumps(songlist_form_hidden_data),
-                logged_in=logged_in
-            )
-
-    elif len(indeces_of_songs) > 0:
-        indeces_of_songs = [int(song) for song in indeces_of_songs]
-        hiddenjson = request.form.get('hiddensongs', None)
-        if hiddenjson is not None:
+        if index_of_episode is not None:
+            hiddenjson = request.form.get('hiddentype', None)
             last_fm_getter = LastFMDataGetter()
-            scrobbling_list = last_fm_getter.scrobble_from_json(hiddenjson,
-                                                                indeces_of_songs)
-            if scrobbling_list:
+
+            song_tuples, songlist_form_hidden_data, songlist_episode = \
+                last_fm_getter.derive_form_data(hiddenjson,index_of_episode)
+
+            if len(song_tuples)<1:
                 return render_template(
                     'index.html',
                     title='BBC last.fm - ',
                     year=datetime.now().year,
                     form=form,
-                    form2 = form2,
-                    superstring = "Successfully Scrobbled",
-                    scrobbling_list = scrobbling_list,
+                    form2=form2,
+                    superstring="No Songs found on last.fm",
                     logged_in=logged_in
                 )
             else:
+                """Renders the BBC last.fm - ."""
                 return render_template(
                     'index.html',
                     title='BBC last.fm - ',
                     year=datetime.now().year,
                     form=form,
-                    form2 = form2,
-                    superstring = "Problems scrobbling, click Refresh",
-                    logged_in=logged_in
+                    form2=form2,
+                    songlist_episode=songlist_episode,
+                    songlist_form_data=song_tuples,
+                    songlist_hidden_data=json.dumps(songlist_form_hidden_data),
+                    logged_in=logged_in,
+                    set_tab="songchoose"
                 )
 
-    elif form.validate_on_submit():
+        elif len(indeces_of_songs) > 0:
+            indeces_of_songs = [int(song) for song in indeces_of_songs]
+            hiddenjson = request.form.get('hiddensongs', None)
+            if hiddenjson is not None:
+                last_fm_getter = LastFMDataGetter()
+                scrobbling_list = last_fm_getter.scrobble_from_json(hiddenjson,
+                                                                    indeces_of_songs)
+                if scrobbling_list:
+                    return render_template(
+                        'index.html',
+                        title='BBC last.fm - ',
+                        year=datetime.now().year,
+                        form=form,
+                        form2 = form2,
+                        superstring = "Successfully Scrobbled",
+                        scrobbling_list = scrobbling_list,
+                        logged_in=logged_in
+                    )
+                else:
+                    return render_template(
+                        'index.html',
+                        title='BBC last.fm - ',
+                        year=datetime.now().year,
+                        form=form,
+                        form2 = form2,
+                        superstring = "Problems scrobbling, click Refresh",
+                        logged_in=logged_in
+                    )
+        elif form.validate_on_submit():
 
-        print("mygetter")
-        my_getter = GetterOfIt()
-        imagelist, hiddenjson = my_getter.get_bbc_json(datestring=form.dt.data.strftime('%x'),
-                                        radiostation_name=form2.radiostation.data)
+            print("mygetter")
+            my_getter = GetterOfIt()
+            imagelist, hiddenjson = my_getter.get_bbc_json(datestring=form.dt.data.strftime('%x'),
+                                            radiostation_name=form2.radiostation.data)
 
-        print(hiddenjson)
+            print(hiddenjson)
 
+            return render_template(
+                'index.html',
+                title='BBC last.fm - ',
+                year=datetime.now().year,
+                form=form,
+                form2 = form2,
+                episodes= imagelist,
+                hiddendata = str(hiddenjson),
+                logged_in=logged_in,
+                set_tab="episodefinder"
+            )
+        else:
+            return render_template(
+                'index.html',
+                title='BBC last.fm - ',
+                year=datetime.now().year,
+                form=form,
+                form2=form2,
+                episodes=list(),
+                logged_in=logged_in
+            )
+    else:
+        """Renders the BBC last.fm - ."""
         return render_template(
             'index.html',
             title='BBC last.fm - ',
             year=datetime.now().year,
             form=form,
-            form2 = form2,
-            episodes= imagelist,
-            hiddendata = str(hiddenjson),
-            logged_in=logged_in,
-            set_tab="episodefinder"
+            form2=form2,
+            episodes=list(),
+            superstring="Please login first"
         )
-    if data is not None:
-        stringi = data
-    else:
-        stringi = None
-    """Renders the BBC last.fm - ."""
-    return render_template(
-        'index.html',
-        title='BBC last.fm - ',
-        year=datetime.now().year,
-        form=form,
-        form2=form2,
-        episodes=list(),
-        superstring=stringi,
-        logged_in=logged_in
-    )
 
 @app.route('/contact')
 def contact():
