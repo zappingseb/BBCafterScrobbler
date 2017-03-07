@@ -1,4 +1,4 @@
-# ![image](http://myfirstflask.azurewebsites.net/static/images/both_logos.png=150x) BBC After Scrobbler
+# ![image](http://myfirstflask.azurewebsites.net/static/images/both_logos.png){width="150px"} BBC After Scrobbler
 
 A tool to make you scrobble whole BBC Radio shows after the emisson to last.fm
 
