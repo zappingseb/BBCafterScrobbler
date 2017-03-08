@@ -632,8 +632,6 @@ def home():
             'index.html',
             title='BBC last.fm - ',
             year=datetime.now().year,
-            form=form,
-            form2=form2,
             episodes=list(),
             superstring="Please login first"
         )

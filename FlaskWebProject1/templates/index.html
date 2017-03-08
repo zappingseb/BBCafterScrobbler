@@ -48,7 +48,7 @@
         <p>
             <!-- all your CSS and JS code, including the stuff -->
             <!-- to handle the datepicker formatting -->
-
+        {% if form %}
             Find Episodes<a name="episodefinder"></a>:
 
             <form name="first" method="post" action="">
@@ -69,6 +69,7 @@
                 <p/><p><button type="submit">Get the episodes</button></p>
             </form>
         </p>
+        {% endif %}
         <p>
             {% if episodes %}
             Select your specific show:<br/>
