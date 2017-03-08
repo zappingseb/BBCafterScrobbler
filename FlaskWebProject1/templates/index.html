@@ -16,9 +16,15 @@
     <p>A Python flask app that makes you scrobble your favourite radio show
         after you've been listening to it.</p>
     {% if logged_in %}
-    <p><a href="http://www.last.fm/"
-          class="btn btn-success" role="button">Logged in</a>
+    <p>
+        <form name="logout" method="post" action="">
+
+        <input type="hidden" value="logout" id="logout" name="logout">
+        <button class="btn btn-danger" type="submit">logout</button>
+        <a href="http://www.last.fm/">You're logged in</a>
+        </form>
     </p>
+
     {% else %}
     <p><a href="http://www.last.fm/api/auth/?api_key=bf4ad92d8618e0d0c0913fc214a5dab6&cb=http://myfirstflask.azurewebsites.net/"
           class="btn btn-danger" role="button">Login to last.fm</a>

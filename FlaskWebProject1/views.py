@@ -460,11 +460,12 @@ class LoginCheck(object):
         # If a session_key is there
         if the_session_key is not None:
             # try to connect at last.fm
+            print(the_session_key)
             try:
                 network=pylast.LastFMNetwork(api_key=doc["api_key"],
                                         api_secret=doc["api_secret"],
                                                 session_key=the_session_key)
-
+                print("STUPID")
                 logged_in = True
             except:
                 logged_in = False
@@ -498,6 +499,8 @@ class LoginCheck(object):
 @app.route('/home')
 def home():
 
+    logged_in = False
+
     # Generate a starting formula using WTF Forms
     form = DateForm()
     form2 = BBCStationList()
@@ -510,11 +513,18 @@ def home():
 
     the_session_key = session.get("session_key", None)
 
+    logout = request.form.get('logout', None)
+
+    if logout:
+        session["session_key"] = None
+        the_session_key = None
 
     # Check if the user generated a login session key
     login_checker = LoginCheck()
 
     logged_in = login_checker.check(the_session_key, lastfm_token)
+
+    print(logged_in)
 
     # In case the user is logged in already
     if logged_in:
