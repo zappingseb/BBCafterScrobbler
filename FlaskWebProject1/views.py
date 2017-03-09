@@ -1,3 +1,4 @@
+
 """
 Flask App for BBC After Scrobbler
 
@@ -31,13 +32,14 @@ from FlaskWebProject1 import app
 import os
 import json
 from flask_wtf import FlaskForm
-from wtforms import DateField, SelectField, ValidationError
+from wtforms import DateField, SelectField, ValidationError, TextAreaField
 import requests
 from requests.packages.urllib3.util.retry import Retry
 from requests.adapters import HTTPAdapter, ConnectionError
 import pylast
 from pylast import NetworkError, WSError
 import yaml
+import re
 
 def get_secret_dict(secrets_file="FlaskWebProject1/static/content/test_pylast.yaml"):
     if os.path.isfile(secrets_file):
@@ -64,6 +66,10 @@ def validate_it(form, chain):
         raise ValidationError("Please do not use a date in the future")
 
 
+class Textfield(FlaskForm):
+
+    input_text = TextAreaField("TextList")
+
 class DateForm(FlaskForm):
     """ Generate a dateform in american date format
 
@@ -71,7 +77,7 @@ class DateForm(FlaskForm):
     by Jquery UI as a DatePicker later on (see static/templates/index.html)
 
     """
-    dt = DateField('Pick a date', format="%m/%d/%Y", validators=[validate_it])
+    dt = DateField("datepick", format="%m/%d/%Y", validators=[validate_it])
 
 
 class BBCStationList(FlaskForm):
@@ -245,6 +251,73 @@ class GetterOfIt(object):
         return json.dumps(list_of_data)
 
 
+class TextParser():
+
+    def deparse_txt(self,list_of_artist_track,splittype,
+                    exceptions=None):
+        if not exceptions:
+            exceptions = ["Remix", "Reprise", "Edit","Mix","Dubplate"]
+
+        flatten = lambda l: [item for sublist in l for item in sublist]
+
+        list_of_artist_track = re.sub(u'\u2013','-',list_of_artist_track)
+        list_of_artist_track = re.sub(u'\xe2','-',list_of_artist_track)
+        list_of_artist_track = re.sub(u'\u2019',"'",list_of_artist_track)
+
+        list_of_artist_track=list_of_artist_track.decode('utf-8').replace(u'\xe2', '-').encode('ascii', 'replace').encode('utf-8')
+
+        list_of_artist_track = list_of_artist_track.replace("by Robert Luis","by Robert Luis (Tru Thoughts)")
+
+        list_of_artist_track = list_of_artist_track.splitlines()
+
+        if splittype:
+
+            list_of_artist_track = [element.split("-") for element in list_of_artist_track]
+
+        else:
+
+            list_of_artist_track = [element for element in list_of_artist_track if not element == '' or not element == " "]
+
+            for splitter in ["-","\xe2"]:
+
+                if isinstance(list_of_artist_track,str):
+                    list_of_artist_track = list_of_artist_track.split(splitter)
+                else:
+                    list_of_artist_track = flatten([line_file.split(splitter) for line_file in list_of_artist_track])
+
+
+            for entry in exceptions:
+                pattern = "".join(["(?:", entry, ")(\))"])
+                out_pat = "".join([entry,"|)"])
+                list_of_artist_track = [re.sub(pattern, out_pat, entry) for entry in list_of_artist_track]
+
+
+            list_of_artist_track = flatten([re.split("(?<!\|)(\))", entry) for entry in list_of_artist_track])
+
+
+            # Delete ending brackets
+            list_of_artist_track = [element for element in list_of_artist_track if element != ")"]
+
+            list_of_artist_track = [
+                [list_of_artist_track[i].strip().strip("|"),
+                 "".join(list_of_artist_track[i+1].strip().split("(")[
+                     0:list_of_artist_track[i+1].count("(")
+                 ]).strip().replace("|","").strip(")")]
+                   for i in range(0, len(list_of_artist_track)-1, 2)]
+
+
+            list_of_artist_track = [var for var in list_of_artist_track if len(var)>0]
+
+
+
+        song_tuples = [(i," -+- ".join([track[0],track[1]]))
+                                   for i,track in enumerate(list_of_artist_track)]
+
+        songlist_form_hidden_data = [{"title":track[1],
+                                   "artist":track[0]}
+                                                 for track in list_of_artist_track]
+        return song_tuples, songlist_form_hidden_data
+
 class LastFMDataGetter():
     """ A class to derive basic connectivities with
     the last.fm API
@@ -402,7 +475,7 @@ class LastFMDataGetter():
         return song_tuples, songlist_form_hidden_data, \
                self.derive_episode_text(hiddenjson,index)
 
-    def scrobble_from_json(self, jsonstring="", indeces=list()):
+    def scrobble_from_json(self, jsonstring="", indeces=list(), has_timestamp=True):
         """From a json of Songs and a list of indeces scrobble songs to the last.fm API
 
         This uses pylast.scrobble_many to simply scrobbe a list of songs from a jsonstring
@@ -416,21 +489,38 @@ class LastFMDataGetter():
         """
         data_list = json.loads(jsonstring)
 
-        tracklist = [{"title":data_list[index]["title"],
-                      "artist":data_list[index]["artist"],
-                      "timestamp":data_list[index]["timestamp"]}
-                     for index in indeces]
+        try:
+            data_list[indeces[0]]["timestamp"]
+        except KeyError:
+            has_timestamp = False
+
+        if has_timestamp:
+            tracklist = [{"title":data_list[index]["title"],
+                          "artist":data_list[index]["artist"],
+                          "timestamp":data_list[index]["timestamp"]}
+                         for index in indeces]
+        else:
+            tracklist = [{"title":data_list[index]["title"],
+                          "artist":data_list[index]["artist"],
+                          "timestamp":datetime.now()}
+                         for index in indeces]
         try:
             self.network.scrobble_many(tracks=tracklist)
 
-            scrobbling_list = [" - ".join([
-                data_list[index]["artist"],
-                data_list[index]["title"],
-                datetime.fromtimestamp(int(
-                    data_list[index]["timestamp"])
-                ).strftime('%Y-%m-%d %H:%M')
-            ]) for index in indeces]
-        except:
+            if has_timestamp:
+                scrobbling_list = [" - ".join([
+                    data_list[index]["artist"],
+                    data_list[index]["title"],
+                    datetime.fromtimestamp(int(
+                        data_list[index]["timestamp"])
+                    ).strftime('%Y-%m-%d %H:%M')
+                ]) for index in indeces]
+            else:
+                scrobbling_list = [" - ".join([
+                    data_list[index]["artist"],
+                    data_list[index]["title"]]) for index in indeces]
+        except (WSError, NetworkError,KeyError) as d:
+            print(d)
             scrobbling_list = False
 
         return scrobbling_list
@@ -460,12 +550,10 @@ class LoginCheck(object):
         # If a session_key is there
         if the_session_key is not None:
             # try to connect at last.fm
-            print(the_session_key)
             try:
                 network=pylast.LastFMNetwork(api_key=doc["api_key"],
                                         api_secret=doc["api_secret"],
                                                 session_key=the_session_key)
-                print("STUPID")
                 logged_in = True
             except:
                 logged_in = False
@@ -504,6 +592,7 @@ def home():
     # Generate a starting formula using WTF Forms
     form = DateForm()
     form2 = BBCStationList()
+    form3 = Textfield()
 
     index_of_episode = request.form.get('webmenu', None)
 
@@ -523,8 +612,6 @@ def home():
     login_checker = LoginCheck()
 
     logged_in = login_checker.check(the_session_key, lastfm_token)
-
-    print(logged_in)
 
     # In case the user is logged in already
     if logged_in:
@@ -605,14 +692,16 @@ def home():
 
         # Check if a date and BBC Radio station were selected and
         # send via POST
-        elif form.validate_on_submit():
+        elif form.is_submitted() and form.dt.data:
+            form.validate_on_submit()
+            print(form.dt.data is not None)
+
 
             print("mygetter")
             my_getter = GetterOfIt()
             imagelist, hiddenjson = my_getter.get_bbc_json(datestring=form.dt.data.strftime('%x'),
                                             radiostation_name=form2.radiostation.data)
 
-            print(hiddenjson)
 
             return render_template(
                 'index.html',
@@ -625,6 +714,47 @@ def home():
                 logged_in=logged_in,
                 set_tab="episodefinder"
             )
+
+        elif form3.is_submitted() and form3.input_text.data:
+
+
+            text=form3.input_text.data
+            text_parser = TextParser()
+            checkit = request.form.get("hackbox",False)
+            checkit = bool(checkit)
+            if checkit:
+                hackbox = "checked"
+            else:
+                hackbox = None
+            song_tuples, songlist_form_hidden_data = text_parser.deparse_txt(text,checkit)
+            if len(song_tuples)<1:
+                return render_template(
+                    'index.html',
+                    title='BBC last.fm - ',
+                    year=datetime.now().year,
+                    superstring="No Songs found in your list",
+                    logged_in=logged_in,
+                    set_tab="songchoose",
+                    hackbox=hackbox,
+                    no_bbc="True"
+                )
+            else:
+                form3.input_text.data = text
+                """Renders the BBC last.fm - ."""
+                return render_template(
+                    'index.html',
+                    title='BBC last.fm - ',
+                    year=datetime.now().year,
+                    form3=form3,
+                    songlist_episode="Your parse songs:",
+                    songlist_form_data=song_tuples,
+                    songlist_hidden_data=json.dumps(songlist_form_hidden_data),
+                    logged_in=logged_in,
+                    set_tab="songchoose",
+                    no_bbc="True",
+                    hackbox=hackbox
+                )
+
         else:
             return render_template(
                 'index.html',
@@ -632,6 +762,7 @@ def home():
                 year=datetime.now().year,
                 form=form,
                 form2=form2,
+                form3=form3,
                 episodes=list(),
                 logged_in=logged_in
             )
@@ -643,5 +774,7 @@ def home():
             title='BBC last.fm - ',
             year=datetime.now().year,
             episodes=list(),
-            superstring="Please login first"
+            superstring="Please login first",
+            supersubstring="explain",
+            no_bbc="True"
         )

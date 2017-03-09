@@ -35,9 +35,11 @@
 </div>
 
 <div class="row">
+    {% if no_bbc!="True" %}
     <div class="col-md-5">
+
         <div style="text-align:justify">
-        <h2>Getting started</h2>
+        <h2>Getting started with BBC</h2>
         <p>
             To help you scrobbling your songs from a specific Radioshow this
             tool is connected to the BBC and can get you the show you want.
@@ -54,6 +56,7 @@
         <p>
             <!-- all your CSS and JS code, including the stuff -->
             <!-- to handle the datepicker formatting -->
+
         {% if form %}
             Find Episodes<a name="episodefinder"></a>:
 
@@ -92,10 +95,11 @@
         </p>
 
     </div>
-
+    {% endif %}
+    {% if songlist_episode %}
     <div class="col-md-5">
         <a name="songchoose"></a>
-        {% if songlist_episode %}
+
         <h2>Choose the songs to scrobble</h2>
         <p>Here we provide a list of all the songs of
         the specific epsode. All are selected. You can scrobble
@@ -133,9 +137,64 @@
             {% endfor %}
         </ul>
         {% endif %}
+        {% if supersubstring=="explain" %}
+        <p>
+            To help you scrobbling your songs from a specific Radioshow this
+            tool is connected to the BBC and can get you the show you want.
+            Just select one of the 6 stations that offer a last.fm account
+            and choose the date the episode you'd like to scrobble was
+            on tune.
+
+            <br/>Additinally you can scrobble just a simple playlist from
+            a text parser which is pretty helpful for most <a href="http://mixcloud.com">Mixcloud</a> episodes.
+        </p>
+        {% endif %}
+    </div>
+    {% endif %}
+
+    {% if form3 %}
+    <div class="col-md-5">
+        <div style="text-align:justify">
+        <h2>Playlist parser</h2>
+        <p>
+            This tool allows you to parse playlists. E.g I really like to listen
+            to the show of Robert Luis on <a href="https://www.mixcloud.com/truthoughts">Mixcloud</a>. He always publishes
+            a playlist and this I want to parse and scrobble.
+        <br/>
+           Before you can start here you have to <a
+                href="http://www.last.fm/api/auth/?api_key=bf4ad92d8618e0d0c0913fc214a5dab6&cb=http://myfirstflask.azurewebsites.net/">login</a> at last.fm. This
+            enables scrobbling tracks later on.
+        </p>
+        <p>
+            Please provide a list like <br/>
+            "Artist" - "Track" (Music Label)
+            </br> Example:<br/>
+            <span style="background-color:#e6e6e6">
+                Spanky Wilson & The Quantic Soul Orchestra – Waiting For Your Touch (Domu Remix) (Tru Thoughts) Rednosedistrikt – Zmit feat Stefan Zmit (Hum Hum)</span>
+            <br/>
+            The words "Remix", "Reprise", "Edit","Mix" and "Dubplate" will not be seen as music labels if they come in brackets.
+            <br/>
+            The tool will normally split by <b>(Music Label)</b>. By checking the box you tell that you provide a perfect
+            list as: <br/>
+            <span style="background-color:#e6e6e6">
+            Artist - Track<br/>
+            Artist - Track<br/>
+                </span>
+        </p>
+        </div>
+        <form name="TextList" method="post" action="">
+                <p>
+                    Split by lines?: <input type="checkbox" id="hackbox" name="hackbox" value=True
+                                            {% if hackbox %}{{ hackbox }}{% endif %}><br/><br/>
+                {{ form3.input_text() }}
+
+                <p/><p><button type="submit">Get the tracklist</button></p>
+        </form>
+
     </div>
     {% endif %}
 </div>
+<div style="clear:both"></div>
 <!-- Start of StatCounter Code for Default Guide -->
 <script type="text/javascript">
 var sc_project=11278086;
